@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">    
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            font-family: sans-serif;
+        }
+        h1, p {
+            text-align: center;
+        }
+
+        .image-wrapper {
+            width: 300px; 
+            height: 200px; 
+            position: relative;
+            perspective: 1000px; 
+            border: 5px solid #00A9FF;
+            box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .flip-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d; 
+            
+            --flip-rotation: 0deg; 
+            --tilt-rotation: 0deg; 
+            --initial-rotation-y: 0deg; 
+            --initial-rotation-x: 0deg; 
+            
+            transition: transform 0.8s ease-out; 
+            
+            transform: rotateX(var(--tilt-rotation)) rotateY(var(--flip-rotation));
+        }
+        
+        .flip-container.bounce-back {
+            transition: transform 2.0s cubic-bezier(0.68, -0.55, 0.265, 2.05); 
+        }
+        
+        .face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden; 
+            overflow: hidden;
+        }
+
+        .front {
+            z-index: 2;
+            transform: rotateY(0deg);
+        }
+
+        .back {
+            transform: rotateY(180deg); 
+        }
+        
+        .face img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+        }
+    </style>
+</head>
+<body>    
+    <div class="image-wrapper">
+        <div class="flip-container">
+            <div class="face front">
+                <img src="a.png">
+            </div>
+            <div class="face back">
+                <img src="b.jpg">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const imageWrapper = document.querySelector('.image-wrapper');
+        const flipContainer = document.querySelector('.flip-container');
+        
+        let mouseleaveTimeoutId = null;
+
+        const tiltSensitivityY = 1; 
+        const tiltSensitivityX = -1; 
+        
+        const maxRotation = 180; 
+
+        function applyFlipEffect(e) {
+            if (mouseleaveTimeoutId) {
+                clearTimeout(mouseleaveTimeoutId);
+                mouseleaveTimeoutId = null;
+            }
+            
+            flipContainer.classList.remove('bounce-back');
+
+            const rect = imageWrapper.getBoundingClientRect(); 
+            const x = e.clientX - (rect.left + rect.width / 2);
+            const y = e.clientY - (rect.top + rect.height / 2);
+
+            let rotationY = x * tiltSensitivityY; 
+            let rotationX = y * tiltSensitivityX; 
+            
+            rotationY = Math.max(-maxRotation, Math.min(maxRotation, rotationY));
+            rotationX = Math.max(-maxRotation, Math.min(maxRotation, rotationX));
+
+            flipContainer.style.setProperty('--flip-rotation', `${rotationY}deg`);
+            flipContainer.style.setProperty('--tilt-rotation', `${rotationX}deg`);
+            
+            if (Math.abs(rotationY) > 90) {
+                flipContainer.style.setProperty('--initial-rotation-y', `${rotationY > 0 ? 180 : -180}deg`);
+            } else {
+                flipContainer.style.setProperty('--initial-rotation-y', '0deg');
+            }
+
+            if (Math.abs(rotationX) > 90) {
+                flipContainer.style.setProperty('--initial-rotation-x', `${rotationX > 0 ? 180 : -180}deg`);
+            } else {
+                flipContainer.style.setProperty('--initial-rotation-x', '0deg');
+            }
+        }
+
+        function resetFlipEffect() {
+            const targetRotationY = flipContainer.style.getPropertyValue('--initial-rotation-y') || '0deg';
+            const targetRotationX = flipContainer.style.getPropertyValue('--initial-rotation-x') || '0deg';
+
+            setTimeout(() => {
+                flipContainer.classList.add('bounce-back');
+                
+                flipContainer.style.setProperty('--flip-rotation', targetRotationY);
+                
+                flipContainer.style.setProperty('--tilt-rotation', targetRotationX);
+            }, 0); 
+        }
+
+        imageWrapper.addEventListener('mousemove', (e) => {
+            applyFlipEffect(e);
+        });
+        
+        imageWrapper.addEventListener('mouseleave', () => {
+            if (mouseleaveTimeoutId) {
+                clearTimeout(mouseleaveTimeoutId);
+            }
+
+            mouseleaveTimeoutId = setTimeout(() => {
+                resetFlipEffect();
+                mouseleaveTimeoutId = null;
+            }, 1500); 
+        });
+    </script>
+</body>
+</html>
