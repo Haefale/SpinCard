@@ -6,6 +6,6 @@
 
 카드가 현재 상태 확인후 복귀
 
-같은 루트에 a.png, j.jpg 파일을 두면 이미지 출력
+같은 루트에 a.png, b.jpg 파일을 두면 이미지 출력
 
 <img width="1058" height="441" alt="image" src="https://github.com/user-attachments/assets/ea70f4c5-de9e-4010-9cee-edefee961148" />
